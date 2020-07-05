@@ -21,7 +21,6 @@ namespace ThreadPoolExercises.Core
                             token.ThrowIfCancellationRequested();
 
                             action();
-
                         }
                         catch (Exception ex)
                         {
@@ -44,9 +43,29 @@ namespace ThreadPoolExercises.Core
             //   HINT: you may use `AutoResetEvent` to wait until the queued work item finishes
             // * In a loop, check whether `token` is not cancelled
             // * If an `action` throws and exception (or token has been cancelled) - `errorAction` should be invoked (if provided)
+           using var autoResetEvent = new AutoResetEvent(false);
+            
+            ThreadPool.QueueUserWorkItem(state =>
+            {
+                for (var i = 0; i < repeats; i++)
+                {
+                    try
+                    {
+                        token.ThrowIfCancellationRequested();
+    
+                        action();
+                    }
+                    catch (Exception ex)
+                    {
+                        errorAction?.Invoke(ex);
+                        break;
+                    }
+                }
 
-
-
+                autoResetEvent.Set();
+            });
+            
+            autoResetEvent.WaitOne();
         }
     }
 }
