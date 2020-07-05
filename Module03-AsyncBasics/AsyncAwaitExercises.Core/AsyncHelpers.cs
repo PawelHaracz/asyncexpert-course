@@ -7,7 +7,7 @@ namespace AsyncAwaitExercises.Core
 {
     public class AsyncHelpers
     {
-        public static async Task<string> GetStringWithRetries(HttpClient client, string url, int maxTries = 3, CancellationToken token = default)
+        public static Task<string> GetStringWithRetries(HttpClient client, string url, int maxTries = 3, CancellationToken token = default)
         {
             // Create a method that will try to get a response from a given `url`, retrying `maxTries` number of times.
             // It should wait one second before the second try, and double the wait time before every successive retry
@@ -28,7 +28,7 @@ namespace AsyncAwaitExercises.Core
             }
 
      
-            var content =  await Task.Run(async () =>
+            var contentTask =   Task.Run(async () =>
             {
                 HttpResponseMessage result = null;
                 do
@@ -41,7 +41,7 @@ namespace AsyncAwaitExercises.Core
                 return  await result.Content.ReadAsStringAsync();
             }, token);
             
-            return content;
+            return contentTask;
         }
 
     }
