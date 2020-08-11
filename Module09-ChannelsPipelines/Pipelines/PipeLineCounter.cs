@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Buffers;
+using System.IO.Pipelines;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -6,19 +8,37 @@ namespace Pipelines
 {
     public class PipeLineCounter
     {
+        private const byte NewLineCharacterByte = (byte) '\n';
         public async Task<int> CountLines(Uri uri)
         {
+            var countOfLines = 0;
             using var client = new HttpClient();
             await using var stream = await client.GetStreamAsync(uri);
+            
+            var pipeReader = PipeReader.Create(stream);
+            while (true)
+            {
+                var result = await pipeReader.ReadAsync();
+                var buffer = result.Buffer;
+                SequencePosition? position;
+                do
+                {
+                    position = buffer.PositionOf(NewLineCharacterByte);
+                    if (position != null)
+                    {
+                        countOfLines++;
+                        var next = buffer.GetPosition(1, position.Value);
+                        buffer = buffer.Slice(next);
+                    }
+                } while (position != null);
+                
+                pipeReader.AdvanceTo(buffer.Start, buffer.End);
 
-            // Calculate how many lines (end of line characters `\n`) are in the network stream
-            // To practice, use a pattern where you have the Pipe, Writer and Reader tasks
-            // Read about SequenceReader<T>, https://docs.microsoft.com/en-us/dotnet/api/system.buffers.sequencereader-1?view=netcore-3.1
-            // This struct h has a method that can be very useful for this scenario :)
-
-            // Good luck and have fun with pipelines!
-
-            return 0;
+                if (result.IsCompleted) break;
+            }
+            await pipeReader.CompleteAsync();
+            
+            return countOfLines;
         }
     }
 }
