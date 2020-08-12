@@ -7,34 +7,33 @@ namespace Synchronization.Tests
 {
     public class UnitTest1
     {
+        private const string  Path = @"../../../../../Synchronization/Release/Synchronization";
         [Fact]
         public async Task GivenExampleApp_WhenLocalExclusiveScope_ThenSucceeds()
         {
-            var path = @"..\..\..\..\..\Synchronization\bin\x64\Debug\netcoreapp3.1\Synchronization.exe";
 
-            var result = await RunProgramAsync(path, "name false");
+            var result = await RunProgramAsync(Path, "name false");
 
-            Assert.Equal("Hello world!\r\n", result);
+            Assert.Equal("Hello world!\n", result);
         }
 
         [Fact]
         public async Task GivenExampleApp_WhenSingleGlobalExclusiveScope_ThenSucceeds()
         {
-            var path = @"..\..\..\..\..\Synchronization\bin\x64\Debug\netcoreapp3.1\Synchronization.exe";
 
-            var result = await RunProgramAsync(path, "name false");
+            var result = await RunProgramAsync(Path, "name false");
 
-            Assert.Equal("Hello world!\r\n", result);
+            Assert.Equal("Hello world!\n", result);
         }
 
         [Fact]
         public async Task GivenExampleApp_WhenDoubleGlobalExclusiveScope_ThenThrows()
         {
             var scopeName = "someScopeName";
-            var path = @"..\..\..\..\..\Synchronization\bin\x64\Debug\netcoreapp3.1\Synchronization.exe";
-            var firstRunTask = RunProgramAsync(path, $"{scopeName} true");
+            
+            var firstRunTask = RunProgramAsync(Path, $"{scopeName} true");
             var exception = await Record.ExceptionAsync(async () =>
-                await RunProgramAsync(path, $"{scopeName} true"));
+                await RunProgramAsync(Path, $"{scopeName} true"));
             await firstRunTask;
 
             Assert.NotNull(exception);
